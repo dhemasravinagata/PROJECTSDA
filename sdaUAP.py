@@ -12,12 +12,10 @@ class InventoryManager:
         self.root.title("Sistem Manajemen Inventaris Gudang")
         self.root.geometry("1200x700")
         self.root.configure(bg='#f0f0f0')
-        
-        # Koneksi database
+  
         self.conn = sqlite3.connect('inventory.db')
         self.create_table()
-        
-        # Style
+
         self.style = ttk.Style()
         self.style.configure('TFrame', background='#f0f0f0')
         self.style.configure('TLabel', background='#f0f0f0', font=('Arial', 10))
@@ -47,22 +45,18 @@ class InventoryManager:
         self.conn.commit()
     
     def create_widgets(self):
-        # Header
         header_frame = ttk.Frame(self.root)
         header_frame.pack(pady=10, padx=20, fill='x')
         
         ttk.Label(header_frame, text="SISTEM MANAJEMEN INVENTARIS GUDANG", 
                  style='Header.TLabel').pack()
         
-        # Main Frame
         main_frame = ttk.Frame(self.root)
         main_frame.pack(fill='both', expand=True, padx=20, pady=10)
-        
-        # Input Frame
+
         input_frame = ttk.LabelFrame(main_frame, text="Input Data Barang", padding=10)
         input_frame.grid(row=0, column=0, sticky='ew', padx=(0, 10))
-        
-        # Form Input
+    
         labels = ['Kode Barang:', 'Nama Barang:', 'Kategori:', 'Stok:', 
                  'Harga Beli:', 'Harga Jual:', 'Supplier:', 'Lokasi:']
         self.entries = {}
@@ -72,8 +66,7 @@ class InventoryManager:
             entry = ttk.Entry(input_frame, width=25)
             entry.grid(row=i, column=1, sticky='ew', pady=5, padx=(5, 0))
             self.entries[label] = entry
-        
-        # Button Frame untuk Input
+    
         button_frame = ttk.Frame(input_frame)
         button_frame.grid(row=len(labels), column=0, columnspan=2, pady=10)
         
@@ -85,8 +78,7 @@ class InventoryManager:
                   command=self.delete_item).pack(side='left', padx=5)
         ttk.Button(button_frame, text="Clear Form", 
                   command=self.clear_form).pack(side='left', padx=5)
-        
-        # Search Frame
+  
         search_frame = ttk.Frame(input_frame)
         search_frame.grid(row=len(labels)+1, column=0, columnspan=2, pady=10, sticky='ew')
         
@@ -97,31 +89,25 @@ class InventoryManager:
                   command=self.search_item).pack(side='left', padx=5)
         ttk.Button(search_frame, text="Refresh", 
                   command=self.load_data).pack(side='left', padx=5)
-        
-        # Table Frame
+       
         table_frame = ttk.LabelFrame(main_frame, text="Daftar Inventaris", padding=10)
         table_frame.grid(row=0, column=1, sticky='nsew')
-        
-        # Treeview
+ 
         columns = ('ID', 'Kode', 'Nama', 'Kategori', 'Stok', 'Harga Beli', 'Harga Jual', 'Supplier', 'Lokasi')
         self.tree = ttk.Treeview(table_frame, columns=columns, show='headings', height=15)
-        
-        # Define headings
+    
         for col in columns:
             self.tree.heading(col, text=col)
             self.tree.column(col, width=100)
-        
-        # Scrollbar untuk treeview
+   
         scrollbar = ttk.Scrollbar(table_frame, orient='vertical', command=self.tree.yview)
         self.tree.configure(yscrollcommand=scrollbar.set)
         
         self.tree.pack(side='left', fill='both', expand=True)
         scrollbar.pack(side='right', fill='y')
         
-        # Bind double click
         self.tree.bind('<Double-1>', self.on_item_select)
         
-        # Report Frame
         report_frame = ttk.LabelFrame(main_frame, text="Laporan & Analisis", padding=10)
         report_frame.grid(row=1, column=0, columnspan=2, sticky='ew', pady=(10, 0))
         
@@ -133,8 +119,7 @@ class InventoryManager:
                   command=self.show_stock_chart).pack(side='left', padx=5)
         ttk.Button(report_frame, text="Total Nilai Inventaris", 
                   command=self.show_total_value).pack(side='left', padx=5)
-        
-        # Configure grid weights
+    
         main_frame.columnconfigure(0, weight=1)
         main_frame.columnconfigure(1, weight=2)
         main_frame.rowconfigure(0, weight=1)
@@ -246,11 +231,9 @@ class InventoryManager:
         self.update_treeview(rows)
     
     def update_treeview(self, rows):
-        # Clear existing data
         for item in self.tree.get_children():
             self.tree.delete(item)
-        
-        # Insert new data
+    
         for row in rows:
             self.tree.insert('', 'end', values=row)
     
@@ -258,8 +241,7 @@ class InventoryManager:
         selected_item = self.tree.selection()
         if selected_item:
             item_values = self.tree.item(selected_item[0])['values']
-            
-            # Fill form with selected item data
+           
             self.entries['Kode Barang:'].delete(0, tk.END)
             self.entries['Kode Barang:'].insert(0, item_values[1])
             
@@ -330,8 +312,7 @@ class InventoryManager:
         
         names = [row[0] for row in rows]
         stocks = [row[1] for row in rows]
-        
-        # Create new window for chart
+     
         chart_window = tk.Toplevel(self.root)
         chart_window.title("Grafik Stok Barang")
         chart_window.geometry("800x600")
@@ -342,8 +323,7 @@ class InventoryManager:
         ax.set_xlabel('Nama Barang')
         ax.set_ylabel('Jumlah Stok')
         plt.xticks(rotation=45, ha='right')
-        
-        # Add value labels on bars
+    
         for bar in bars:
             height = bar.get_height()
             ax.text(bar.get_x() + bar.get_width()/2., height,
@@ -378,4 +358,5 @@ class InventoryManager:
 if __name__ == "__main__":
     root = tk.Tk()
     app = InventoryManager(root)
+
     root.mainloop()
