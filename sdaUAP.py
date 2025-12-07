@@ -1,10 +1,7 @@
 import tkinter as tk
-from tkinter import ttk, messagebox, simpledialog
+from tkinter import ttk, messagebox
 import sqlite3
-from datetime import datetime
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import pandas as pd
+from collections import deque
 
 class InventoryManager:
     def __init__(self, root):
@@ -36,10 +33,6 @@ class InventoryManager:
                 stok INTEGER NOT NULL,
                 harga_beli REAL,
                 harga_jual REAL,
-                supplier TEXT,
-                lokasi TEXT,
-                tanggal_masuk TEXT,
-                tanggal_update TEXT
             )
         ''')
         self.conn.commit()
@@ -58,7 +51,7 @@ class InventoryManager:
         input_frame.grid(row=0, column=0, sticky='ew', padx=(0, 10))
     
         labels = ['Kode Barang:', 'Nama Barang:', 'Kategori:', 'Stok:', 
-                 'Harga Beli:', 'Harga Jual:', 'Supplier:', 'Lokasi:']
+                 'Harga Beli:', 'Harga Jual:']
         self.entries = {}
         
         for i, label in enumerate(labels):
@@ -93,7 +86,7 @@ class InventoryManager:
         table_frame = ttk.LabelFrame(main_frame, text="Daftar Inventaris", padding=10)
         table_frame.grid(row=0, column=1, sticky='nsew')
  
-        columns = ('ID', 'Kode', 'Nama', 'Kategori', 'Stok', 'Harga Beli', 'Harga Jual', 'Supplier', 'Lokasi')
+        columns = ('ID', 'Kode', 'Nama', 'Kategori', 'Stok', 'Harga Beli', 'Harga Jual')
         self.tree = ttk.Treeview(table_frame, columns=columns, show='headings', height=15)
     
         for col in columns:
@@ -137,16 +130,13 @@ class InventoryManager:
             stok = int(self.entries['Stok:'].get() or 0)
             harga_beli = float(self.entries['Harga Beli:'].get() or 0)
             harga_jual = float(self.entries['Harga Jual:'].get() or 0)
-            supplier = self.entries['Supplier:'].get()
-            lokasi = self.entries['Lokasi:'].get()
-            tanggal_masuk = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             
             cursor = self.conn.cursor()
             cursor.execute('''
                 INSERT INTO inventory 
-                (kode_barang, nama_barang, kategori, stok, harga_beli, harga_jual, supplier, lokasi, tanggal_masuk, tanggal_update)
+                (kode_barang, nama_barang, kategori, stok, harga_beli, harga_jual)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (kode_barang, nama_barang, kategori, stok, harga_beli, harga_jual, supplier, lokasi, tanggal_masuk, tanggal_masuk))
+            ''', (kode_barang, nama_barang, kategori, stok, harga_beli, harga_jual))
             
             self.conn.commit()
             messagebox.showinfo("Sukses", "Barang berhasil ditambahkan!")
@@ -175,17 +165,13 @@ class InventoryManager:
             stok = int(self.entries['Stok:'].get() or 0)
             harga_beli = float(self.entries['Harga Beli:'].get() or 0)
             harga_jual = float(self.entries['Harga Jual:'].get() or 0)
-            supplier = self.entries['Supplier:'].get()
-            lokasi = self.entries['Lokasi:'].get()
-            tanggal_update = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             
             cursor = self.conn.cursor()
             cursor.execute('''
                 UPDATE inventory SET 
                 kode_barang=?, nama_barang=?, kategori=?, stok=?, harga_beli=?, harga_jual=?, 
-                supplier=?, lokasi=?, tanggal_update=?
                 WHERE id=?
-            ''', (kode_barang, nama_barang, kategori, stok, harga_beli, harga_jual, supplier, lokasi, tanggal_update, item_id))
+            ''', (kode_barang, nama_barang, kategori, stok, harga_beli, harga_jual, item_id))
             
             self.conn.commit()
             messagebox.showinfo("Sukses", "Barang berhasil diupdate!")
@@ -360,3 +346,4 @@ if __name__ == "__main__":
     app = InventoryManager(root)
 
     root.mainloop()
+
