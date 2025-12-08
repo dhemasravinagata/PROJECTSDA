@@ -176,3 +176,53 @@ class InventoryManager:
             except Exception as e:
                 messagebox.showerror("Error", f"Terjadi kesalahan: {str(e)}")
 
+    def clear_form(self):
+        for entry in self.entries:
+            entry.delete(0, tk.END)
+        self.selected_item_id = None
+
+    def load_data(self):
+        cursor = self.conn.cursor()
+        cursor.execute('SELECT * FROM inventory ORDER BY id DESC')
+        rows = cursor.fetchall()
+        self.update_treeview(rows)
+
+    def update_treeview(self, rows):
+        for item in self.tree.get_children():
+            self.tree.delete(item)
+        for row in rows:
+            self.tree.insert('', 'end', values=row)
+
+    def on_item_select(self, event):
+        selected_item = self.tree.selection()
+        if selected_item:
+            item_values = self.tree.item(selected_item[0])['values']
+            self.selected_item_id = item_values[0]  
+
+            self.entries[0].delete(0, tk.END)
+            self.entries[0].insert(0, item_values[1])
+
+            self.entries[1].delete(0, tk.END)
+            self.entries[1].insert(0, item_values[2])
+
+            self.entries[2].delete(0, tk.END)
+            self.entries[2].insert(0, item_values[3])
+
+            self.entries[3].delete(0, tk.END)
+            self.entries[3].insert(0, item_values[4])
+
+            self.entries[4].delete(0, tk.END)
+            self.entries[4].insert(0, item_values[5])
+
+            self.entries[5].delete(0, tk.END)
+            self.entries[5].insert(0, item_values[6])
+
+    def search_item(self):
+        search_term = self.search_entry.get()  
+        cursor = self.conn.cursor()
+        cursor.execute('''
+            SELECT * FROM inventory 
+            WHERE kode_barang LIKE ? OR nama_barang LIKE ? OR kategori LIKE ?
+        ''', (f'%{search_term}%', f'%{search_term}%', f'%{search_term}%'))  
+        rows = cursor.fetchall() 
+        self.update_treeview(rows)
