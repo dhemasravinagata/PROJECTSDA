@@ -97,3 +97,82 @@ class InventoryManager:
 
         self.tree.bind('<ButtonRelease-1>', self.on_item_select)  # Ganti untuk deteksi klik
    
+    def add_item(self):
+        try:
+            item_data = [entry.get() for entry in self.entries]  
+            self.stack.append(('add', item_data))  
+
+            kode_barang = self.entries[0].get()
+            nama_barang = self.entries[1].get()
+            kategori = self.entries[2].get()
+            
+            if not kode_barang or not nama_barang:
+                messagebox.showerror("Error", "Kode Barang dan Nama Barang harus diisi!")
+                return
+            
+            stok = int(self.entries[3].get() or 0)
+            harga_beli = float(self.entries[4].get() or 0)
+            harga_jual = float(self.entries[5].get() or 0)
+            
+            cursor = self.conn.cursor()
+            cursor.execute(''' 
+                INSERT INTO inventory 
+                (kode_barang, nama_barang, kategori, stok, harga_beli, harga_jual)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (kode_barang, nama_barang, kategori, stok, harga_beli, harga_jual))
+            
+            self.conn.commit()
+            messagebox.showinfo("Sukses", "Barang berhasil ditambahkan!")
+            self.clear_form()
+            self.load_data()
+            
+        except sqlite3.IntegrityError:
+            messagebox.showerror("Error", "Kode Barang sudah ada!")
+        except ValueError:
+            messagebox.showerror("Error", "Stok dan harga harus berupa angka!")
+        except Exception as e:
+            messagebox.showerror("Error", f"Terjadi kesalahan: {str(e)}")
+
+    def update_item(self):
+        if self.selected_item_id is None:
+            messagebox.showerror("Error", "Pilih barang yang akan diupdate!")
+            return
+
+        kode_barang = self.entries[0].get()
+        nama_barang = self.entries[1].get()
+        kategori = self.entries[2].get()
+        stok = int(self.entries[3].get() or 0)
+        harga_beli = float(self.entries[4].get() or 0)
+        harga_jual = float(self.entries[5].get() or 0)
+
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute('''
+                UPDATE inventory SET 
+                kode_barang=?, nama_barang=?, kategori=?, stok=?, harga_beli=?, harga_jual=?
+                WHERE id=?
+            ''', (kode_barang, nama_barang, kategori, stok, harga_beli, harga_jual, self.selected_item_id))
+
+            self.conn.commit()
+            messagebox.showinfo("Sukses", "Barang berhasil diupdate!")
+            self.load_data()
+            self.clear_form()
+        except Exception as e:
+            messagebox.showerror("Error", f"Terjadi kesalahan: {str(e)}")
+
+    def delete_item(self):
+        if self.selected_item_id is None:
+            messagebox.showerror("Error", "Pilih barang yang akan dihapus!")
+            return
+
+        if messagebox.askyesno("Konfirmasi", "Apakah Anda yakin ingin menghapus barang ini?"):
+            try:
+                cursor = self.conn.cursor()
+                cursor.execute('DELETE FROM inventory WHERE id=?', (self.selected_item_id,))
+                self.conn.commit()
+                messagebox.showinfo("Sukses", "Barang berhasil dihapus!")
+                self.load_data()
+                self.clear_form()
+            except Exception as e:
+                messagebox.showerror("Error", f"Terjadi kesalahan: {str(e)}")
+
